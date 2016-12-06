@@ -11,13 +11,10 @@ Started as a research project in routing *without regular expressions*.
 var router = require('http-routing');
 
 // create a new index of routes
-var routes = [];
-
-// add route to the index
-routes.push(router.route('GET', '/ping', 'A'));
-
-// add another route to the index
-routes.push(router.route('GET', '/echo/:word', 'B'));
+var routes = [
+	router.route('GET', '/ping', 'A'),
+	router.route('GET', '/echo/:word', 'B'),
+];
 
 router.match('GET', '/anything');	// undefined
 router.match('POST', '/ping');	// undefined
