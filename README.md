@@ -1,43 +1,60 @@
 # http routing
 
-Simple, unobtrusive routing of HTTP requests (a url and a verb) for
-server or browser
+Simple, unobtrusive routing of HTTP requests (a url and a verb) for the server
+or a browser.
 
-Started as a research project in routing *without regular expressions*
+Started as a research project in routing *without regular expressions*.
 
 ## example
 
 ```js
-var Router = require('http-routing');
+var router = require('http-routing');
 
-var router = new Router();
+// create a new index of routes
+var routes = [];
 
-router
-	.catchAll(function(){
-		// this = ctx
-		// do 404
-	})
-	.get('/ping', function(){
-		// do stuff
-	})
-	.get('/people/:city/:name', function( city, name ){
-		console.log(city, name);	// what ever the user entered
-	});
+// add route to the index
+routes.push(router.route('GET', '/ping', 'A'));
 
-// match and run function with context
-router.run('/ping', 'GET', ctx);
+// add another route to the index
+routes.push(router.route('GET', '/echo/:word', 'B'));
 
-// match and return information
-router.match('/ping', 'GET');
+router.match('GET', '/anything');	// undefined
+router.match('POST', '/ping');	// undefined
+
+router.match('GET', '/ping');
 /*
 {
-	router	// route instance
-	url		// url (/ping)
-	verb	// verb (GET)
-	idx		// index of matched route (0)
-	next	// function to resume matching from this index
-	route	// route instance
-	params	// any params
+	method: 'GET',
+	signature: '/ping',
+	params: [],
+	value: 'A',
+	args: [],
+	query: '',
 }
 */
+
+router.match('GET', '/echo/bam?a=b');
+/*
+{
+	method: 'GET',
+	signature: '/echo/:',
+	params: [ 'word' ],
+	value: 'B',
+	args: [ 'bam' ],
+	query: 'a=b',
+}
+*/
+```
+
+## Install
+
+```sh
+ npm install http-routing
+```
+
+## Test
+
+```sh
+npm test
 ```

@@ -1,135 +1,53 @@
 'use strict';
 
-var Route = require('../').Route;
-var tape = require('tape');
+var test = require('tape');
+var route = require('../lib/route');
 
-tape.test('route', function( t ){
-	var route = Route('/');
+function testRoute(t, method, definition ,value, expected) {
+	var actual = route(method, definition, value);
+	t.deepEqual(actual, expected, method + ' ' + definition + ' '
+		+ value.toString());
+}
 
-	t.equal(route.verb, 'GET');
-	t.equal(route.query, false);
-	t.equal(route.signature, '/');
-	t.deepEqual(route.params, []);
+var noop = Function.prototype;
 
-	t.deepEqual(route.match('/'), []);
-	t.notOk(route.match('/profile'));
-	t.notOk(route.match('/?sort=price'));
+test('route', function(t) {
+	t.plan(11);
 
-	route = Route('/products');
+	testRoute(t, 'OPTIONS', '/', noop,
+		{ method: 'OPTIONS', signature: '/', params: [], value: noop});
 
-	t.equal(route.verb, 'GET');
-	t.equal(route.signature, '/products');
-	t.deepEqual(route.params, []);
+	testRoute(t, 'GET', '/', noop,
+		{ method: 'GET', signature: '/', params: [], value: noop});
 
-	t.deepEqual(route.match('/products'), []);
-	t.notOk(route.match('/people'));
-	t.notOk(route.match('/products?sort=price'));
+	testRoute(t, 'GET', '/profile', noop,
+		{ method: 'GET', signature: '/profile',
+			params: [], value: noop});
 
-	route = Route('POST:/products');
+	testRoute(t, 'GET', '/products/:pk', noop,
+		{ method: 'GET', signature: '/products/:', params: ['pk'],
+			value: noop});
 
-	t.equal(route.verb, 'POST');
-	t.equal(route.signature, '/products');
-	t.deepEqual(route.params, []);
+	testRoute(t, 'GET', '/products/:pk/details/:country', noop,
+		{ method: 'GET', signature: '/products/:/details/:',
+			params: ['pk', 'country'], value: noop});
 
-	t.deepEqual(route.match('/products'), []);
-	t.notOk(route.match('/people'));
-	t.notOk(route.match('/products?sort=price'));
-	t.deepEqual(route.match('/products', 'POST'), []);
-	t.notOk(route.match('/products', 'GET'));
-	t.notOk(route.match('/people', 'GET'));
+	testRoute(t, 'GET', '/', { title: "Hello World" },
+		{ method: 'GET', signature: '/', params: [],
+			value: { title: "Hello World"}});
 
-	route = Route(':/products');
+	testRoute(t, 'HEAD', '/', noop,
+		{ method: 'HEAD', signature: '/', params: [], value: noop});
 
-	t.equal(route.verb, 'GET');
-	t.equal(route.signature, '/products');
-	t.deepEqual(route.params, []);
+	testRoute(t, 'POST', '/', noop,
+		{ method: 'POST',signature: '/', params: [], value: noop});
 
-	route = Route('/products/:pk');
+	testRoute(t, 'POST', '/files', noop,
+		{ method: 'POST',signature: '/files', params: [], value: noop});
 
-	t.equal(route.signature, '/products/:');
-	t.deepEqual(route.params, [ 'pk' ]);
+	testRoute(t, 'PUT', '/', noop,
+		{ method: 'PUT', signature: '/', params: [], value: noop});
 
-	t.deepEqual(route.match('/products/532'), [ '532' ]);
-	t.notOk(route.match('/products/532/'));
-	t.notOk(route.match('/products/'));
-	t.notOk(route.match('/products'));
-	t.notOk(route.match('/products/532?sort=price'));
-
-	route = Route('/products/:pk/');
-
-	t.equal(route.signature, '/products/:/');
-	t.deepEqual(route.params, [ 'pk' ]);
-
-	t.deepEqual(route.match('/products/532/'), [ '532' ]);
-	t.notOk(route.match('/products/532'));
-	t.notOk(route.match('/products/532/?sort=price'));
-
-	route = Route('/products/:pk/end');
-
-	t.deepEqual(route.match('/products/532/end'), [ '532' ]);
-	t.notOk(route.match('/products/532'));
-	t.notOk(route.match('/products/532/end?sort=price'));
-
-	t.equal(route.signature, '/products/:/end');
-	t.deepEqual(route.params, [ 'pk' ]);
-
-	route = Route('/products/:pk/:size');
-
-	t.equal(route.signature, '/products/:/:');
-	t.deepEqual(route.params, [ 'pk', 'size' ]);
-
-	t.deepEqual(route.match('/products/532/small'), [ '532', 'small' ]);
-	t.notOk(route.match('/products/532/small/'));
-	t.notOk(route.match('/products/532/small/other'));
-
-	route = Route('/?');
-
-	t.equal(route.signature, '/');
-	t.deepEqual(route.query, true);
-	t.deepEqual(route.params, []);
-
-	t.deepEqual(route.match('/'), []);
-	t.deepEqual(route.match('/?'), []);
-	t.deepEqual(route.match('/?name=brian'), []);
-	t.notOk(route.match('/a?'));
-
-	route = Route('/products?');
-
-	t.equal(route.signature, '/products');
-	t.deepEqual(route.query, true);
-	t.deepEqual(route.params, []);
-
-	t.deepEqual(route.match('/products'), []);
-	t.deepEqual(route.match('/products?'), []);
-	t.deepEqual(route.match('/products?name=brian'), []);
-
-	route = Route('/products/?');
-
-	t.equal(route.signature, '/products/');
-	t.deepEqual(route.query, true);
-	t.deepEqual(route.params, []);
-
-	t.deepEqual(route.match('/products/'), []);
-	t.deepEqual(route.match('/products/?'), []);
-	t.deepEqual(route.match('/products/?name=brian'), []);
-
-	route = Route('/products/:sort?');
-
-	t.equal(route.signature, '/products/:');
-	t.deepEqual(route.query, true);
-	t.deepEqual(route.params, [ 'sort' ]);
-
-	t.deepEqual(route.match('/products/price'), [ 'price' ]);
-	t.deepEqual(route.match('/products/price?'), [ 'price' ]);
-	t.deepEqual(route.match('/products/price?name=brian'), [ 'price' ]);
-
-	route = Route('/products/:sort/?');
-
-	t.equal(route.signature, '/products/:/');
-	t.deepEqual(route.query, true);
-	t.deepEqual(route.params, [ 'sort' ]);
-
-	t.deepEqual(route.match('/products/price/?name=brian'), [ 'price' ]);
-
-	t.end();
+	testRoute(t, 'DELETE', '/', noop,
+		{ method: 'DELETE', signature: '/', params: [], value: noop});
 });
