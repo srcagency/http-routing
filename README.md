@@ -16,10 +16,10 @@ var routes = [
 	router.route('GET', '/echo/:word', 'B'),
 ];
 
-router.match('GET', '/anything');	// undefined
-router.match('POST', '/ping');	// undefined
+router.match(routes, 'GET', '/anything');	// undefined
+router.match(routes, 'POST', '/ping');	// undefined
 
-router.match('GET', '/ping');
+router.match(routes, 'GET', '/ping');
 /*
 {
 	method: 'GET',
@@ -31,7 +31,7 @@ router.match('GET', '/ping');
 }
 */
 
-router.match('GET', '/echo/bam?a=b');
+router.match(routes, 'GET', '/echo/bam?a=b');
 /*
 {
 	method: 'GET',
