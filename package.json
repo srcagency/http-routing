@@ -1,7 +1,7 @@
 {
 	"name": "http-routing",
 	"description": "Unobtrusive http routing",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"repository": "srcagency/http-routing.git",
 	"keywords": [
 		"router",
